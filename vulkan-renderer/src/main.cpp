@@ -3,11 +3,7 @@
 
 int main() {
     Window window = Window(500, 500, "Hello World");
-
-    while (!glfwWindowShouldClose(window.getWindow())) {
-        glfwPollEvents();
-    }
-
+    window.run();
     window.~Window();
 
     return 0;

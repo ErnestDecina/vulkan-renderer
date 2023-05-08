@@ -34,3 +34,4 @@
 .vs
 /vulkan-renderer/.vs
 /vulkan-renderer/external
+/vulkan-renderer/x64
