@@ -17,6 +17,7 @@ public:
 	* @param `window_name` the name of the window
 	*/
 	Window(int window_width, int window_height, std::string window_name);
+
 	/**
 	* Clears Memory linked to GFLW window
 	*/

@@ -1,10 +1,21 @@
 #include <iostream>
-#include "./window/glfw_window.h"
+#include "./application/hello_triangle_application/hello_triangle_application.h"
 
-int main() {
-    Window window = Window(500, 500, "Hello World");
-    window.run();
-    window.~Window();
+int main() 
+{
+    HelloTriangleApplication app = HelloTriangleApplication();
 
-    return 0;
+    try
+    {
+        app.run();
+    } // End try
+    catch (const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+    } // End catch
+
+    std::cout << "Cleaning project" << std::endl;
+    app.~HelloTriangleApplication();
+
+    return EXIT_SUCCESS;
 }

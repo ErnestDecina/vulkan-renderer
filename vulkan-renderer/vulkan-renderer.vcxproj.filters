@@ -31,10 +31,25 @@
     <Filter Include="Source Files\Vulkan">
       <UniqueIdentifier>{dc57f23c-3337-4aa1-8d1b-2c6e35b15ec5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Application\Hello Triangle Application">
+      <UniqueIdentifier>{30193683-5bec-4a4b-ab2a-f49efee19124}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Application\Hello Triangle Applcation">
+      <UniqueIdentifier>{4d71f822-9329-4282-bd23-76663c94aaee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\window\glfw_window.h">
       <Filter>Header Files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="src\application\hello_triangle_application\hello_triangle_application.h">
+      <Filter>Header Files\Application\Hello Triangle Application</Filter>
+    </ClInclude>
+    <ClInclude Include="src\main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vulkan\vulkan_api.h">
+      <Filter>Header Files\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -43,6 +58,12 @@
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\application\hello_triangle_application\hello_triangle_application.cpp">
+      <Filter>Source Files\Application\Hello Triangle Applcation</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vulkan\vulkan_api.cpp">
+      <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
