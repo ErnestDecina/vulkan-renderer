@@ -7,6 +7,11 @@
 #include "../../window/glfw_window.h"
 #include "../../vulkan/vulkan_api.h"
 
+// Symbolic Names
+#define WINDOW_WIDTH 1080
+#define WINDOW_HEIGHT 720
+#define WINDOW_NAME "Vulkan Tutorial"
+
 
 class HelloTriangleApplication
 {
@@ -17,11 +22,10 @@ public:
 
 private:
 	// Variables
-	Window glfw_window = Window(500, 500, "Vulkan");
+	Window glfw_window = Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_NAME);
 	VulkanAPI vulkan_api = VulkanAPI();
 
 	// Methods
-	void initVulkan();
 	void mainLoop();
 	void cleanup();
 

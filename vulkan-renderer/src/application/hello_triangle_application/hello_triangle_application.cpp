@@ -3,7 +3,6 @@
 
 HelloTriangleApplication::HelloTriangleApplication()
 {
-	this->initVulkan();
 } // End HelloTriabgleApplication Constructor
 
 HelloTriangleApplication::~HelloTriangleApplication()
@@ -14,11 +13,8 @@ HelloTriangleApplication::~HelloTriangleApplication()
 void HelloTriangleApplication::run()
 {
 	this->mainLoop();
-} // End run()
 
-void HelloTriangleApplication::initVulkan()
-{
-} // End initVulkan()
+} // End run()
 
 void HelloTriangleApplication::mainLoop()
 {
