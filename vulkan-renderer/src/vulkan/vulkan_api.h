@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <map>
+#include <optional>
 
 #ifdef _DEBUG
 	#define DEBUG_STATE true
@@ -57,13 +58,25 @@ private:
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT&);
 
 	/**
-	*	Physical devices and queue families
+	*	Physical devices
 	*/
 	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
 
 	void pickPhysicalDevice();
 	void printPhysicalDevices();
 	void printSelectedVulkanDevice();
-	bool isVulkanDeviceSuitable(VkPhysicalDevice);
+	bool isVulkanDevicePropertiesFeaturesSuitable(VkPhysicalDevice);
 	int	rateVulkanDeviceSuitability(VkPhysicalDevice);
+
+	/**
+	*	Queue Families 
+	*/
+	struct QueueFamilyIndices
+	{
+		std::optional<uint32_t> graphics_family;
+		bool isComplete();
+	};
+
+	VulkanAPI::QueueFamilyIndices findQueueFamilies(VkPhysicalDevice);
+	bool isVulkanDeviceQueueFamilySuitable(VkPhysicalDevice);
 }; // End class VulkanAPI

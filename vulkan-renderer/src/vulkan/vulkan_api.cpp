@@ -1,5 +1,10 @@
 #include "./vulkan_api.h"
 
+//
+//
+//  Vulkan Initialization
+//
+//
 
 /**
 * VulkanAPI constructor
@@ -7,7 +12,7 @@
 VulkanAPI::VulkanAPI()
 {
 	this->initVulkan();
-}
+} // End VulkanAPI constructor
 
 /**
 *   VulkanAPI deconstructor
@@ -18,7 +23,7 @@ VulkanAPI::~VulkanAPI()
         destroyDebugUtilsMessengerEXT(this->vulkan_instance, this->debug_messenger, nullptr);
 
     vkDestroyInstance(this->vulkan_instance, nullptr);
-}
+} // End VulkanAPI deconstructor
 
 /**
 *   initVulkan()
@@ -34,11 +39,11 @@ void VulkanAPI::initVulkan()
     // this->printPhysicalDevices();
     this->pickPhysicalDevice();
     this->printSelectedVulkanDevice();
-}
+} // End initVulkan
 
 
 /**
-*   createInctance()
+*   createInstance()
 *   desc:
 *       Creates vulkan instance
 */
@@ -92,6 +97,31 @@ void VulkanAPI::createInstance()
 } // End createInstance()
 
 /**
+*   extensionSupport()
+*   desc:
+*       Prints out available vulkan extensions
+*
+*/
+void VulkanAPI::extensionSupport()
+{
+    uint32_t extension_count = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
+    std::vector<VkExtensionProperties> vulkan_extensions_support(extension_count);
+    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, vulkan_extensions_support.data());
+
+    std::cout << "available extensions:\n";
+    for (const auto& extension : vulkan_extensions_support)
+        std::cout << '\t' << extension.extensionName << '\n';
+    // End for
+} // End extensionSupport
+
+//
+//
+//  Validation Layers
+//
+//
+
+/**
 *   setupDebugMessenger()
 *   desc:
 *       Sets up debug messaging for vulkan validation layers 
@@ -110,25 +140,6 @@ void VulkanAPI::setupDebugMessenger()
         throw std::runtime_error("Failed to set up debug messenger");
     // End if
 } // End setupDebugMessenger
-
-/**
-*   extensionSupport()  
-*   desc:
-*       Prints out available vulkan extensions
-* 
-*/
-void VulkanAPI::extensionSupport()
-{
-    uint32_t extension_count = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
-    std::vector<VkExtensionProperties> vulkan_extensions_support(extension_count);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, vulkan_extensions_support.data());
-
-    std::cout << "available extensions:\n";
-    for (const auto& extension : vulkan_extensions_support) 
-        std::cout << '\t' << extension.extensionName << '\n';
-    // End for
-} // End extensionSupport
 
 /**
 *   checkValidationLayerSupport()
@@ -286,6 +297,12 @@ void VulkanAPI::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfo
     create_info.pfnUserCallback = debugCallback;
 } // End populateDebugMessengerCreateInfo
 
+//
+//
+//  Physical Devices
+//
+//
+
 /**
 *   pickPhysicalDevice()
 *   desc:
@@ -404,7 +421,7 @@ void VulkanAPI::printSelectedVulkanDevice()
 } // End printSelectedVulkanDevice()
 
 /**
-*   isVulkanDeviceSuitable()
+*   isVulkanDevicePropertiesFeaturesSuitable()
 *   desc:
 *       Checks if Vulkan Device is suitable for use
 *   
@@ -412,7 +429,7 @@ void VulkanAPI::printSelectedVulkanDevice()
 *   
 *   @return bool if Vulkan Device is sui5able
 */
-bool VulkanAPI::isVulkanDeviceSuitable(VkPhysicalDevice vulkan_device)
+bool VulkanAPI::isVulkanDevicePropertiesFeaturesSuitable(VkPhysicalDevice vulkan_device)
 {
     VkPhysicalDeviceProperties vulkan_device_properties;
     vkGetPhysicalDeviceProperties(vulkan_device, &vulkan_device_properties);
@@ -459,4 +476,79 @@ int VulkanAPI::rateVulkanDeviceSuitability(VkPhysicalDevice vulkan_device)
 
     return score;
 } // End rateVulkanDevicesSuitability()
+
+//
+//
+//  Queue Families
+//
+//
+
+/**
+*   QueueFamilyIndices::isComplete()
+*   desc:
+*       Checks if graphics_family has a value
+*
+*   @return bool if graphics_family has a value
+*
+*/
+bool VulkanAPI::QueueFamilyIndices::isComplete()
+{
+    return graphics_family.has_value();
+} // End QueueFamilyIndices::isComplete()
+
+/**
+*   findQueueFamilies()
+*   desc: 
+*       Check which queue families are supported by physical_device
+* 
+*   @param VkPhysicalDevice vulkan_device
+* 
+*   @return QueueFamilyIndices 
+*/
+VulkanAPI::QueueFamilyIndices VulkanAPI::findQueueFamilies(VkPhysicalDevice vulkan_device)
+{
+    QueueFamilyIndices indices;
+
+    // 
+    uint32_t vulkan_device_queue_family_count = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(vulkan_device, &vulkan_device_queue_family_count, nullptr);
+
+    std::vector<VkQueueFamilyProperties> vulkan_device_queue_families(vulkan_device_queue_family_count);
+    vkGetPhysicalDeviceQueueFamilyProperties(vulkan_device, &vulkan_device_queue_family_count, vulkan_device_queue_families.data());
+
+    int  i = 0;
+    for (VkQueueFamilyProperties &queue_family : vulkan_device_queue_families)
+    {
+        if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+        {
+            indices.graphics_family = i;
+        } // End if 
+
+        if (indices.isComplete())
+        {
+            break;
+        } // End if
+
+        i++;
+    } // End for
+
+    return indices;
+} // End findQueueFamilies()
+
+/**
+*   isVulkanDeviceQueueFamilySuitable()  
+*   desc:
+*       Checks if the vulkan devices queue family is suitable
+*
+*   @param VkPhysicalDevice vulkan_device
+*   
+*   @return bool if the vulkan device has a queue family that is suitable
+* 
+*/
+bool VulkanAPI::isVulkanDeviceQueueFamilySuitable(VkPhysicalDevice vulkan_device)
+{
+    QueueFamilyIndices indices = findQueueFamilies(vulkan_device);
+    return indices.isComplete();
+} // End isVulkanDeviceQueueFamilySuitable()
+
 
