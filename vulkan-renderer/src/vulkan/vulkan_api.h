@@ -9,10 +9,10 @@
 #include <cstdlib>
 #include <cstring>
 
-#ifdef NDBUG
-	#define DEBUG false
+#ifdef _DEBUG
+	#define DEBUG_STATE true
 #else
-	#define DEBUG true
+	#define DEBUG_STATE false
 #endif
 
 
@@ -36,7 +36,7 @@ private:
 
 	// DEBUG
 	const std::vector<const char*> validation_layers = { "VK_LAYER_KHRONOS_validation" };
-	const bool enable_validation_layers = false;
+	const bool enable_validation_layers = true;
 	VkDebugUtilsMessengerEXT debug_messenger;
 
 	void setupDebugMessenger();
@@ -45,5 +45,5 @@ private:
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT*, void*);
 	VkResult createDebugUtilsMessengerEXT(VkInstance, const VkDebugUtilsMessengerCreateInfoEXT*, const VkAllocationCallbacks*, VkDebugUtilsMessengerEXT*);
 	void destroyDebugUtilsMessengerEXT(VkInstance, VkDebugUtilsMessengerEXT, const VkAllocationCallbacks*);
-
+	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT&);
 }; // End class VulkanAPI

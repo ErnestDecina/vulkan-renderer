@@ -61,18 +61,23 @@ void VulkanAPI::createInstance()
 
 
     // Include validation layer names
+    VkDebugUtilsMessengerCreateInfoEXT debug_create_info{};
     if (enable_validation_layers)
     {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
         createInfo.ppEnabledLayerNames = validation_layers.data();
+        
+        populateDebugMessengerCreateInfo(debug_create_info);
+        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debug_create_info;
     } // End if
     else
     {
         createInfo.enabledLayerCount = 0;
-    }
+        createInfo.pNext = nullptr;
+    } // End else
 
     std::vector<const char*> required_extensions = getRequiredExtensions();
-    createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+    // createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
     createInfo.enabledExtensionCount = (uint32_t) required_extensions.size();
     createInfo.ppEnabledExtensionNames = required_extensions.data();
 
@@ -95,11 +100,7 @@ void VulkanAPI::setupDebugMessenger()
     // End if
 
     VkDebugUtilsMessengerCreateInfoEXT create_info{};
-    create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    create_info.pfnUserCallback = debugCallback;
-    create_info.pUserData = nullptr; // Optional
+    populateDebugMessengerCreateInfo(create_info);
 
     if (createDebugUtilsMessengerEXT(this->vulkan_instance, &create_info, nullptr, &this->debug_messenger) != VK_SUCCESS)
         throw std::runtime_error("Failed to set up debug messenger");
@@ -258,8 +259,17 @@ void VulkanAPI::destroyDebugUtilsMessengerEXT(
     const VkAllocationCallbacks* pAllocator
 )
 {
-    PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkan_instance, "vkDestroyDebugUtilsMessengerETX");
+    PFN_vkDestroyDebugUtilsMessengerEXT func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(vulkan_instance, "vkDestroyDebugUtilsMessengerEXT");
     
     if (func != nullptr)
         func(vulkan_instance, debug_message, pAllocator);
 } // End destroyDebugUtilsMessengerEXT
+
+void VulkanAPI::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create_info)
+{
+    create_info = {};
+    create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    create_info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    create_info.pfnUserCallback = debugCallback;
+} // End populateDebugMessengerCreateInfo
