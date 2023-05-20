@@ -22,6 +22,7 @@ VulkanAPI::~VulkanAPI()
     if (this->enable_validation_layers)
         destroyDebugUtilsMessengerEXT(this->vulkan_instance, this->debug_messenger, nullptr);
 
+    vkDestroyDevice(this->vulkan_logical_device, nullptr);
     vkDestroyInstance(this->vulkan_instance, nullptr);
 } // End VulkanAPI deconstructor
 
@@ -568,7 +569,39 @@ void VulkanAPI::createLogicalDevice()
 {
     QueueFamilyIndices vulkan_physical_device_family_queues = findQueueFamilies(this->vulkan_physical_device);
 
-     
+    VkDeviceQueueCreateInfo vulkan_logical_device_queue_create_info{};
+    vulkan_logical_device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    vulkan_logical_device_queue_create_info.queueFamilyIndex = vulkan_physical_device_family_queues.graphics_family.value();
+    vulkan_logical_device_queue_create_info.queueCount = 1;
+
+    float queue_priority = 1.0f;
+    vulkan_logical_device_queue_create_info.pQueuePriorities = &queue_priority;
+
+    VkPhysicalDeviceFeatures device_features{};
+
+    VkDeviceCreateInfo vulkan_logical_device_create_info{};
+    vulkan_logical_device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    vulkan_logical_device_create_info.pQueueCreateInfos = &vulkan_logical_device_queue_create_info;
+    vulkan_logical_device_create_info.queueCreateInfoCount = 1;
+    vulkan_logical_device_create_info.pEnabledFeatures = &device_features;
+
+    vulkan_logical_device_create_info.enabledExtensionCount = 0;
+
+
+    if (enable_validation_layers)
+    {
+        vulkan_logical_device_create_info.enabledLayerCount = static_cast<uint32_t> (this->validation_layers.size());
+        vulkan_logical_device_create_info.ppEnabledLayerNames = validation_layers.data();
+    } // End if
+    else
+    {
+        vulkan_logical_device_create_info.enabledLayerCount = 0;
+    } // End else
+
+    if (vkCreateDevice(this->vulkan_physical_device, &vulkan_logical_device_create_info, nullptr, &this->vulkan_logical_device) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create logical device");
+    } // End if
 } // End createLogicalDevice()
 
 

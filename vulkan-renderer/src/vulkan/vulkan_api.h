@@ -11,9 +11,8 @@
 #include <map>
 #include <optional>
 
+// DEBUG
 #define DEBUG_STATE true
-
-
 
 // Symbolic Names
 #define VULKAN_APP_NAME "Hello Triangle"
@@ -81,6 +80,7 @@ private:
 	*	Logical device and queues
 	*/
 	VkDevice vulkan_logical_device;
+	VkQueue graphics_queue;
 
 	void createLogicalDevice();
 
