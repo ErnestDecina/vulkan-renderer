@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <cstring>
+#include <map>
 
 #ifdef _DEBUG
 	#define DEBUG_STATE true
@@ -27,14 +28,22 @@ public:
 	~VulkanAPI();
 
 private:
-	// Release
+	/**
+	*	Vulkan Initialization
+	*	desc:
+	*		Used to create a Vulkan Instance
+	*/
 	VkInstance vulkan_instance;
 
 	void initVulkan();
 	void createInstance();
 	void extensionSupport();
 
-	// DEBUG
+	/**
+	*	Validation Layers
+	*	desc:
+	*		Used for DEBUG output messages
+	*/
 	const std::vector<const char*> validation_layers = { "VK_LAYER_KHRONOS_validation" };
 	const bool enable_validation_layers = true;
 	VkDebugUtilsMessengerEXT debug_messenger;
@@ -46,4 +55,15 @@ private:
 	VkResult createDebugUtilsMessengerEXT(VkInstance, const VkDebugUtilsMessengerCreateInfoEXT*, const VkAllocationCallbacks*, VkDebugUtilsMessengerEXT*);
 	void destroyDebugUtilsMessengerEXT(VkInstance, VkDebugUtilsMessengerEXT, const VkAllocationCallbacks*);
 	void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT&);
+
+	/**
+	*	Physical devices and queue families
+	*/
+	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+
+	void pickPhysicalDevice();
+	void printPhysicalDevices();
+	void printSelectedVulkanDevice();
+	bool isVulkanDeviceSuitable(VkPhysicalDevice);
+	int	rateVulkanDeviceSuitability(VkPhysicalDevice);
 }; // End class VulkanAPI

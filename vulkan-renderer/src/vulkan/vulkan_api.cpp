@@ -1,5 +1,6 @@
 #include "./vulkan_api.h"
 
+
 /**
 * VulkanAPI constructor
 */
@@ -28,8 +29,11 @@ VulkanAPI::~VulkanAPI()
 void VulkanAPI::initVulkan()
 {
 	this->createInstance();
-    this->extensionSupport();
+    // this->extensionSupport();
     this->setupDebugMessenger();
+    // this->printPhysicalDevices();
+    this->pickPhysicalDevice();
+    this->printSelectedVulkanDevice();
 }
 
 
@@ -265,6 +269,14 @@ void VulkanAPI::destroyDebugUtilsMessengerEXT(
         func(vulkan_instance, debug_message, pAllocator);
 } // End destroyDebugUtilsMessengerEXT
 
+/**
+*   populateDebugMessengerCreateInfo()
+*   desc:
+*       Inputs the informations needed for the debug_callback
+*   
+*   @param VkDebugUtilsMessengerCreateInfoEXT& create_info
+* 
+*/
 void VulkanAPI::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& create_info)
 {
     create_info = {};
@@ -273,3 +285,178 @@ void VulkanAPI::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfo
     create_info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     create_info.pfnUserCallback = debugCallback;
 } // End populateDebugMessengerCreateInfo
+
+/**
+*   pickPhysicalDevice()
+*   desc:
+*       Chooses the physical GPU to utilize
+* 
+*/
+void VulkanAPI::pickPhysicalDevice()
+{
+    uint32_t device_count = 0;
+    vkEnumeratePhysicalDevices(this->vulkan_instance, &device_count, nullptr);
+
+    // If no devices have vulkan support
+    if (device_count == 0)
+        throw std::runtime_error("Failed to find GPU's with Vulkan support");
+
+    // Allocate memory for all vulkan devices
+    std::vector<VkPhysicalDevice> vulkan_devices(device_count);
+    vkEnumeratePhysicalDevices(this->vulkan_instance, &device_count, vulkan_devices.data());
+    
+    // Look for the first suitable Vulkan Device
+    /*
+    for (const VkPhysicalDevice& device : vulkan_devices)
+    {
+        if (isVulkanDeviceSuitable(device))
+        {
+            this->physical_device = device;
+            break;
+        } // End if
+    } // End for
+    */
+
+    // Look for the highest rate suitable Vulkan Device
+    std::multimap<int, VkPhysicalDevice> vulkan_device_candidates;
+
+    // Rate all available vulkan devices
+    for (VkPhysicalDevice& device : vulkan_devices)
+    {
+        int score = rateVulkanDeviceSuitability(device);
+        vulkan_device_candidates.insert(std::make_pair(score, device));
+    } // End for
+
+    // Check if best candidate is suitable
+    if (vulkan_device_candidates.rbegin()->first > 0)
+    {
+        this->physical_device = vulkan_device_candidates.rbegin()->second;
+    } // End if
+    else
+    {
+        throw std::runtime_error("Failed to find a suitable GPU");
+    } // End else
+} // End pickPhysicalDevice
+
+/**
+*   printPhyiscalDevices()
+*   desc:
+*       Prints all available GPU devices
+*
+*/
+void VulkanAPI::printPhysicalDevices()
+{
+    uint32_t device_count = 0;
+    vkEnumeratePhysicalDevices(this->vulkan_instance, &device_count, nullptr);
+
+    // If no devices have vulkan support
+    if (device_count == 0)
+        throw std::runtime_error("Failed to find GPU's with Vulkan support");
+
+    // Allocate memory for all vulkan devices
+    std::vector<VkPhysicalDevice> vulkan_devices(device_count);
+    vkEnumeratePhysicalDevices(this->vulkan_instance, &device_count, vulkan_devices.data());
+
+    for (VkPhysicalDevice vulkan_device : vulkan_devices)
+    {
+        VkPhysicalDeviceProperties vulkan_device_properties;
+        vkGetPhysicalDeviceProperties(vulkan_device, &vulkan_device_properties);
+
+        VkPhysicalDeviceFeatures vulkan_device_features;
+        vkGetPhysicalDeviceFeatures(vulkan_device, &vulkan_device_features);
+
+        VkPhysicalDeviceMemoryProperties vulkan_device_memory_properties;
+        vkGetPhysicalDeviceMemoryProperties(vulkan_device, &vulkan_device_memory_properties);
+
+        std::cout << "Device Name: " << vulkan_device_properties.deviceName << std::endl;
+        std::cout << "\tVulkan API Version:     " << vulkan_device_properties.apiVersion << std::endl;
+        std::cout << "\tDevice Type:            " << vulkan_device_properties.deviceType << std::endl;
+        std::cout << "\tDriver Verion:          " << vulkan_device_properties.driverVersion << std::endl;
+        std::cout << "\tGPU Memory size:        " << vulkan_device_memory_properties.memoryHeaps[0].size / 1000000 << "MB" << std::endl;
+        std::cout << "\tShared Memory size:     " << vulkan_device_memory_properties.memoryHeaps[1].size / 1000000 << "MB" << std::endl;
+    } // End for
+} // End printPhysicalDevice
+
+
+/**
+*   printSelectedVulkanDevice()
+*   desc:
+        Prints details of selected Vulkan Device
+* 
+*/
+void VulkanAPI::printSelectedVulkanDevice()
+{
+    VkPhysicalDeviceProperties vulkan_device_properties;
+    vkGetPhysicalDeviceProperties(this->physical_device, &vulkan_device_properties);
+
+    VkPhysicalDeviceFeatures vulkan_device_features;
+    vkGetPhysicalDeviceFeatures(this->physical_device, &vulkan_device_features);
+
+    VkPhysicalDeviceMemoryProperties vulkan_device_memory_properties;
+    vkGetPhysicalDeviceMemoryProperties(this->physical_device, &vulkan_device_memory_properties);
+
+    std::cout << "Selected Device Name: " << vulkan_device_properties.deviceName << std::endl;
+    std::cout << "\tVulkan API Version:     " << vulkan_device_properties.apiVersion << std::endl;
+    std::cout << "\tDevice Type:            " << vulkan_device_properties.deviceType << std::endl;
+    std::cout << "\tDriver Verion:          " << vulkan_device_properties.driverVersion << std::endl;
+    std::cout << "\tGPU Memory size:        " << vulkan_device_memory_properties.memoryHeaps[0].size / 1000000 << "MB" << std::endl;
+    std::cout << "\tShared Memory size:     " << vulkan_device_memory_properties.memoryHeaps[1].size / 1000000 << "MB" << std::endl;
+} // End printSelectedVulkanDevice()
+
+/**
+*   isVulkanDeviceSuitable()
+*   desc:
+*       Checks if Vulkan Device is suitable for use
+*   
+*   @param VkPhysicalDevice vulkan_device
+*   
+*   @return bool if Vulkan Device is sui5able
+*/
+bool VulkanAPI::isVulkanDeviceSuitable(VkPhysicalDevice vulkan_device)
+{
+    VkPhysicalDeviceProperties vulkan_device_properties;
+    vkGetPhysicalDeviceProperties(vulkan_device, &vulkan_device_properties);
+
+    VkPhysicalDeviceFeatures vulkan_device_features;
+    vkGetPhysicalDeviceFeatures(vulkan_device, &vulkan_device_features);
+
+    
+
+    return vulkan_device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+            vulkan_device_features.geometryShader;
+} // End isVulkanDeviceSuitable
+
+/**
+*   rateVulkanDeviceSuitability()
+*   desc:
+*       Checks for Vulkan Fetaures and Properties and returns a rating of the GPU
+*   
+*   @param VkPhysicalDevice vulkan_device
+* 
+*   @return int vulkan_device rating
+*/
+int VulkanAPI::rateVulkanDeviceSuitability(VkPhysicalDevice vulkan_device)
+{
+    VkPhysicalDeviceProperties vulkan_device_properties;
+    vkGetPhysicalDeviceProperties(vulkan_device, &vulkan_device_properties);
+
+    VkPhysicalDeviceFeatures vulkan_device_features;
+    vkGetPhysicalDeviceFeatures(vulkan_device, &vulkan_device_features);
+
+    // No Geometry shaders
+    if (!vulkan_device_features.geometryShader)
+        return 0;
+
+    int score = 0;
+
+    // Discrete GPU are rated higher
+    if (vulkan_device_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        score += 1000;
+
+    // Max possible size of textures
+    score += vulkan_device_properties.limits.maxImageDimension2D;
+
+
+    return score;
+} // End rateVulkanDevicesSuitability()
+
