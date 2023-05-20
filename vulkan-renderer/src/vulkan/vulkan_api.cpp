@@ -34,11 +34,12 @@ VulkanAPI::~VulkanAPI()
 void VulkanAPI::initVulkan()
 {
 	this->createInstance();
-    // this->extensionSupport();
+    this->extensionSupport();
     this->setupDebugMessenger();
     // this->printPhysicalDevices();
     this->pickPhysicalDevice();
     this->printSelectedVulkanDevice();
+    this->createLogicalDevice();
 } // End initVulkan
 
 
@@ -347,7 +348,7 @@ void VulkanAPI::pickPhysicalDevice()
     // Check if best candidate is suitable
     if (vulkan_device_candidates.rbegin()->first > 0)
     {
-        this->physical_device = vulkan_device_candidates.rbegin()->second;
+        this->vulkan_physical_device = vulkan_device_candidates.rbegin()->second;
     } // End if
     else
     {
@@ -404,13 +405,13 @@ void VulkanAPI::printPhysicalDevices()
 void VulkanAPI::printSelectedVulkanDevice()
 {
     VkPhysicalDeviceProperties vulkan_device_properties;
-    vkGetPhysicalDeviceProperties(this->physical_device, &vulkan_device_properties);
+    vkGetPhysicalDeviceProperties(this->vulkan_physical_device, &vulkan_device_properties);
 
     VkPhysicalDeviceFeatures vulkan_device_features;
-    vkGetPhysicalDeviceFeatures(this->physical_device, &vulkan_device_features);
+    vkGetPhysicalDeviceFeatures(this->vulkan_physical_device, &vulkan_device_features);
 
     VkPhysicalDeviceMemoryProperties vulkan_device_memory_properties;
-    vkGetPhysicalDeviceMemoryProperties(this->physical_device, &vulkan_device_memory_properties);
+    vkGetPhysicalDeviceMemoryProperties(this->vulkan_physical_device, &vulkan_device_memory_properties);
 
     std::cout << "Selected Device Name: " << vulkan_device_properties.deviceName << std::endl;
     std::cout << "\tVulkan API Version:     " << vulkan_device_properties.apiVersion << std::endl;
@@ -550,5 +551,24 @@ bool VulkanAPI::isVulkanDeviceQueueFamilySuitable(VkPhysicalDevice vulkan_device
     QueueFamilyIndices indices = findQueueFamilies(vulkan_device);
     return indices.isComplete();
 } // End isVulkanDeviceQueueFamilySuitable()
+
+//
+//
+//  Logical device and queues
+//
+//
+
+/**
+*   createLogicalDevice()
+*   desc:
+*       Seting up a logical device to interface using physical device
+* 
+*/
+void VulkanAPI::createLogicalDevice()
+{
+    QueueFamilyIndices vulkan_physical_device_family_queues = findQueueFamilies(this->vulkan_physical_device);
+
+     
+} // End createLogicalDevice()
 
 

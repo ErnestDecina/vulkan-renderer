@@ -11,11 +11,8 @@
 #include <map>
 #include <optional>
 
-#ifdef _DEBUG
-	#define DEBUG_STATE true
-#else
-	#define DEBUG_STATE false
-#endif
+#define DEBUG_STATE true
+
 
 
 // Symbolic Names
@@ -46,7 +43,7 @@ private:
 	*		Used for DEBUG output messages
 	*/
 	const std::vector<const char*> validation_layers = { "VK_LAYER_KHRONOS_validation" };
-	const bool enable_validation_layers = true;
+	const bool enable_validation_layers = DEBUG_STATE;
 	VkDebugUtilsMessengerEXT debug_messenger;
 
 	void setupDebugMessenger();
@@ -60,7 +57,7 @@ private:
 	/**
 	*	Physical devices
 	*/
-	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+	VkPhysicalDevice vulkan_physical_device = VK_NULL_HANDLE;
 
 	void pickPhysicalDevice();
 	void printPhysicalDevices();
@@ -79,4 +76,12 @@ private:
 
 	VulkanAPI::QueueFamilyIndices findQueueFamilies(VkPhysicalDevice);
 	bool isVulkanDeviceQueueFamilySuitable(VkPhysicalDevice);
+
+	/**
+	*	Logical device and queues
+	*/
+	VkDevice vulkan_logical_device;
+
+	void createLogicalDevice();
+
 }; // End class VulkanAPI
