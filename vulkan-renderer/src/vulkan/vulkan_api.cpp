@@ -713,6 +713,11 @@ bool VulkanAPI::checkVulkanDeviceExtensionSupport(VkPhysicalDevice vulkan_physic
 /**
 *   querySwapChainSupport()
 *   desc:
+*       return SwapChainSupportDetails with vulkan physical device swap chain information and details
+* 
+*   @param VkPhysicalDevice vulkan_physical_device
+*   
+*   @return VulkanAPI::SwapChainSupportDetails
 *       
 */
 VulkanAPI::SwapChainSupportDetails VulkanAPI::querySwapChainSupport(VkPhysicalDevice vulkan_physical_device)
@@ -743,4 +748,23 @@ VulkanAPI::SwapChainSupportDetails VulkanAPI::querySwapChainSupport(VkPhysicalDe
 
     return swap_chain_support_details;
 } // End
+
+/**
+*   chooseSwapSurfaceFormat()
+*   desc:
+*       
+*/
+VkSurfaceFormatKHR VulkanAPI::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats)
+{
+    for (VkSurfaceFormatKHR available_format : available_formats)
+    {
+        if (available_format.format == VK_FORMAT_B8G8R8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        {
+            return available_format;
+        } // End if
+    } // End for
+
+    // Default to first one
+    return available_formats[0];
+} // End chooseSwapSurfaceFormat
 

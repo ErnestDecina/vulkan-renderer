@@ -116,4 +116,5 @@ private:
 
 	bool checkVulkanDeviceExtensionSupport(VkPhysicalDevice);
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>&);
 }; // End class VulkanAPI
