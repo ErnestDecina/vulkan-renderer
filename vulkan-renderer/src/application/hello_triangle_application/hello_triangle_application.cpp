@@ -26,6 +26,7 @@ void HelloTriangleApplication::mainLoop()
 
 void HelloTriangleApplication::cleanup()
 {
-	this->vulkan_api.~VulkanAPI();
 	this->glfw_window.~Window();
+	this->vulkan_api.~VulkanAPI();
 } // End cleanup();
+

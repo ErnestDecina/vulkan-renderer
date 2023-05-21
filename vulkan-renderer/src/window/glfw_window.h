@@ -38,7 +38,7 @@ private:
 	int window_width;
 	int window_height;
 	std::string window_name;
-	GLFWwindow* window;
+	GLFWwindow* glfw_window;
 
 	/**
 	* Initializes the GLFW window

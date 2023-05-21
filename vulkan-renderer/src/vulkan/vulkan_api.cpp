@@ -9,8 +9,9 @@
 /**
 * VulkanAPI constructor
 */
-VulkanAPI::VulkanAPI()
+VulkanAPI::VulkanAPI(GLFWwindow* glfw_window_pointer)
 {
+    this->glfw_window = glfw_window_pointer;
 	this->initVulkan();
 } // End VulkanAPI constructor
 
@@ -22,9 +23,35 @@ VulkanAPI::~VulkanAPI()
     if (this->enable_validation_layers)
         destroyDebugUtilsMessengerEXT(this->vulkan_instance, this->debug_messenger, nullptr);
 
+    
     vkDestroyDevice(this->vulkan_logical_device, nullptr);
+    vkDestroySurfaceKHR(this->vulkan_instance, this->vulkan_window_surface, nullptr); // Destroying 1 out of 2 SurfaceKHR??????
     vkDestroyInstance(this->vulkan_instance, nullptr);
 } // End VulkanAPI deconstructor
+
+/**
+*   getVulkanInstance()
+*   desc:
+*       returns vulkan instance
+*   
+*   @return VkInstance vulkan_instance
+*/
+VkInstance VulkanAPI::getVulkanInstance()
+{
+    return this->vulkan_instance;
+} // End getVulkanInstance()
+
+/**
+*   getVulkanWindowSurface()
+*   desc:
+*       returns VkSurfaceKHR vulkan_window_surface
+* 
+*   @returns VkSurfaceKHR vulkan_window_surface
+*/
+VkSurfaceKHR* VulkanAPI::getVulkanWindowSurface()
+{
+    return &this->vulkan_window_surface;
+} // End getVulkanWindowSurface()
 
 /**
 *   initVulkan()
@@ -41,6 +68,7 @@ void VulkanAPI::initVulkan()
     this->pickPhysicalDevice();
     this->printSelectedVulkanDevice();
     this->createLogicalDevice();
+    this->createVulkanWindowSurface();
 } // End initVulkan
 
 
@@ -603,5 +631,25 @@ void VulkanAPI::createLogicalDevice()
         throw std::runtime_error("Failed to create logical device");
     } // End if
 } // End createLogicalDevice()
+
+//
+//
+//  Window Surface
+//
+//
+
+
+/**
+*   createVulkanWindowSurface()
+*   desc:
+*       creates window surface between vulkan and glfw_window
+*/
+void VulkanAPI::createVulkanWindowSurface()
+{
+    if (glfwCreateWindowSurface(this->vulkan_instance, this->glfw_window, nullptr, &this->vulkan_window_surface) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create GLFW window surface");
+    } // End if
+} // End createVulkanWindowSurface()
 
 

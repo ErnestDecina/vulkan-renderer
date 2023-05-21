@@ -11,7 +11,7 @@ Window::Window(int window_width, int window_height, std::string window_name)
 
 Window::~Window()
 {
-	glfwDestroyWindow(this->window);
+	glfwDestroyWindow(this->glfw_window);
 	glfwTerminate();
 } // End Window::~Window()
 
@@ -22,7 +22,7 @@ void Window::run()
 
 GLFWwindow* Window::getWindow()
 {
-	return this->window;
+	return this->glfw_window;
 } // End Window::getWindow()
 
 void Window::initWindow()
@@ -30,12 +30,12 @@ void Window::initWindow()
 	glfwInit();
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	this->window = glfwCreateWindow(this->window_width, this->window_height, this->window_name.c_str(), nullptr, nullptr);
+	this->glfw_window = glfwCreateWindow(this->window_width, this->window_height, this->window_name.c_str(), nullptr, nullptr);
 } // Window::initWindow()
 
 void Window::checkCloseWindow()
 {
-	while (!glfwWindowShouldClose(this->window)) 
+	while (!glfwWindowShouldClose(this->glfw_window)) 
 	{
 		glfwPollEvents();
 	} // End while
