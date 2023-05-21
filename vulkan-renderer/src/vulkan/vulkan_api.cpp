@@ -66,9 +66,9 @@ void VulkanAPI::initVulkan()
     this->setupDebugMessenger();
     // this->printPhysicalDevices();
     this->pickPhysicalDevice();
+    this->createVulkanWindowSurface();
     this->printSelectedVulkanDevice();
     this->createLogicalDevice();
-    this->createVulkanWindowSurface();
 } // End initVulkan
 
 
@@ -523,7 +523,7 @@ int VulkanAPI::rateVulkanDeviceSuitability(VkPhysicalDevice vulkan_device)
 */
 bool VulkanAPI::QueueFamilyIndices::isComplete()
 {
-    return graphics_family.has_value();
+    return graphics_family.has_value() && present_family.has_value();
 } // End QueueFamilyIndices::isComplete()
 
 /**
@@ -549,6 +549,14 @@ VulkanAPI::QueueFamilyIndices VulkanAPI::findQueueFamilies(VkPhysicalDevice vulk
     int  i = 0;
     for (VkQueueFamilyProperties &queue_family : vulkan_device_queue_families)
     {
+        VkBool32 presentSupport = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(vulkan_device, i, this->vulkan_window_surface, &presentSupport);
+
+        if (presentSupport)
+        {
+            indices.present_family = i;
+        } // End if
+
         if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
             indices.graphics_family = i;
@@ -595,24 +603,29 @@ bool VulkanAPI::isVulkanDeviceQueueFamilySuitable(VkPhysicalDevice vulkan_device
 */
 void VulkanAPI::createLogicalDevice()
 {
-    QueueFamilyIndices vulkan_physical_device_family_queues = findQueueFamilies(this->vulkan_physical_device);
+    QueueFamilyIndices indices = findQueueFamilies(this->vulkan_physical_device);
 
-    VkDeviceQueueCreateInfo vulkan_logical_device_queue_create_info{};
-    vulkan_logical_device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    vulkan_logical_device_queue_create_info.queueFamilyIndex = vulkan_physical_device_family_queues.graphics_family.value();
-    vulkan_logical_device_queue_create_info.queueCount = 1;
+    std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
+    std::set<uint32_t> unique_queue_families = { indices.graphics_family.value(), indices.present_family.value() };
 
     float queue_priority = 1.0f;
-    vulkan_logical_device_queue_create_info.pQueuePriorities = &queue_priority;
+    for (uint32_t queue_family : unique_queue_families)
+    {
+        VkDeviceQueueCreateInfo queue_create_info{};
+        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_create_info.queueFamilyIndex = queue_family;
+        queue_create_info.queueCount = 1;
+        queue_create_info.pQueuePriorities = &queue_priority;
+        queue_create_infos.push_back(queue_create_info);
+    } // End for
 
     VkPhysicalDeviceFeatures device_features{};
 
     VkDeviceCreateInfo vulkan_logical_device_create_info{};
     vulkan_logical_device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    vulkan_logical_device_create_info.pQueueCreateInfos = &vulkan_logical_device_queue_create_info;
-    vulkan_logical_device_create_info.queueCreateInfoCount = 1;
+    vulkan_logical_device_create_info.pQueueCreateInfos = queue_create_infos.data();
+    vulkan_logical_device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
     vulkan_logical_device_create_info.pEnabledFeatures = &device_features;
-
     vulkan_logical_device_create_info.enabledExtensionCount = 0;
 
 

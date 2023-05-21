@@ -13,6 +13,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <map>
+#include <set>
 #include <optional>
 
 // DEBUG
@@ -74,9 +75,12 @@ private:
 	/**
 	*	Queue Families 
 	*/
+	VkQueue present_queue;
 	struct QueueFamilyIndices
 	{
 		std::optional<uint32_t> graphics_family;
+		std::optional<uint32_t> present_family;
+
 		bool isComplete();
 	};
 
@@ -97,6 +101,9 @@ private:
 	VkSurfaceKHR vulkan_window_surface;
 	GLFWwindow* glfw_window = nullptr;
 
+
 	void createVulkanWindowSurface();
+
+
 
 }; // End class VulkanAPI
