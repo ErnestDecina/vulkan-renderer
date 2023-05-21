@@ -586,7 +586,17 @@ VulkanAPI::QueueFamilyIndices VulkanAPI::findQueueFamilies(VkPhysicalDevice vulk
 bool VulkanAPI::isVulkanDeviceQueueFamilySuitable(VkPhysicalDevice vulkan_device)
 {
     QueueFamilyIndices indices = findQueueFamilies(vulkan_device);
-    return indices.isComplete();
+
+    bool vulkan_device_extensions_supported = checkVulkanDeviceExtensionSupport(vulkan_device);
+
+    bool swap_chain_adequate = false;
+    if (vulkan_device_extensions_supported)
+    {
+        SwapChainSupportDetails swap_chain_support = querySwapChainSupport(vulkan_device);
+        swap_chain_adequate = !swap_chain_support.vulkan_surface_formats.empty() && !swap_chain_support.present_modes.empty();
+    } // End if
+
+    return indices.isComplete() && vulkan_device_extensions_supported && swap_chain_adequate;
 } // End isVulkanDeviceQueueFamilySuitable()
 
 //
@@ -626,7 +636,8 @@ void VulkanAPI::createLogicalDevice()
     vulkan_logical_device_create_info.pQueueCreateInfos = queue_create_infos.data();
     vulkan_logical_device_create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
     vulkan_logical_device_create_info.pEnabledFeatures = &device_features;
-    vulkan_logical_device_create_info.enabledExtensionCount = 0;
+    vulkan_logical_device_create_info.enabledExtensionCount = static_cast<uint32_t>(vulkan_device_extensions.size());
+    vulkan_logical_device_create_info.ppEnabledExtensionNames = vulkan_device_extensions.data();
 
 
     if (enable_validation_layers)
@@ -651,7 +662,6 @@ void VulkanAPI::createLogicalDevice()
 //
 //
 
-
 /**
 *   createVulkanWindowSurface()
 *   desc:
@@ -665,4 +675,72 @@ void VulkanAPI::createVulkanWindowSurface()
     } // End if
 } // End createVulkanWindowSurface()
 
+
+
+//
+//
+//  Swap Chain
+//
+//
+
+/**
+*   checkVulkanDeviceExtensionSupport()
+*   desc:
+*       Checks if Vulkan device can support required extensions
+*   
+*   @param VkPhysicalDevice vulkan_physical_device
+* 
+*   @return bool if 
+*/
+bool VulkanAPI::checkVulkanDeviceExtensionSupport(VkPhysicalDevice vulkan_physical_device)
+{
+    uint32_t extension_count;
+    vkEnumerateDeviceExtensionProperties(vulkan_physical_device, nullptr, &extension_count, nullptr);
+
+    std::vector<VkExtensionProperties> available_extensions(extension_count);
+    vkEnumerateDeviceExtensionProperties(vulkan_physical_device, nullptr, &extension_count, available_extensions.data());
+
+    std::set<std::string> required_extensions(vulkan_device_extensions.begin(), vulkan_device_extensions.end());
+
+    for (VkExtensionProperties& extension : available_extensions)
+    {
+        required_extensions.erase(extension.extensionName);
+    } // End for
+
+    return required_extensions.empty();
+} // End checkVulkanDeviceExtensionSupport()
+
+/**
+*   querySwapChainSupport()
+*   desc:
+*       
+*/
+VulkanAPI::SwapChainSupportDetails VulkanAPI::querySwapChainSupport(VkPhysicalDevice vulkan_physical_device)
+{
+    SwapChainSupportDetails swap_chain_support_details;
+
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(vulkan_physical_device, this->vulkan_window_surface, &swap_chain_support_details.vulkan_surface_capabilities);
+
+    // Surface Formats
+    uint32_t vulkan_format_count;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(vulkan_physical_device, this->vulkan_window_surface, &vulkan_format_count, nullptr);
+
+    if (vulkan_format_count != 0)
+    {
+        swap_chain_support_details.vulkan_surface_formats.resize(vulkan_format_count);
+        vkGetPhysicalDeviceSurfaceFormatsKHR(vulkan_physical_device, this->vulkan_window_surface, &vulkan_format_count, swap_chain_support_details.vulkan_surface_formats.data());
+    } // End if
+
+    // Present Modes
+    uint32_t vulkan_present_mode_count;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, this->vulkan_window_surface, &vulkan_present_mode_count, nullptr);
+
+    if (vulkan_present_mode_count != 0)
+    {
+        swap_chain_support_details.present_modes.resize(vulkan_present_mode_count);
+        vkGetPhysicalDeviceSurfacePresentModesKHR(vulkan_physical_device, this->vulkan_window_surface, &vulkan_present_mode_count, swap_chain_support_details.present_modes.data());
+    } // End if
+
+    return swap_chain_support_details;
+} // End
 

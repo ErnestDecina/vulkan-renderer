@@ -101,9 +101,19 @@ private:
 	VkSurfaceKHR vulkan_window_surface;
 	GLFWwindow* glfw_window = nullptr;
 
-
 	void createVulkanWindowSurface();
 
+	/**
+	*	Swap Chain
+	*/
+	const std::vector<const char*> vulkan_device_extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	struct SwapChainSupportDetails
+	{
+		VkSurfaceCapabilitiesKHR vulkan_surface_capabilities;
+		std::vector<VkSurfaceFormatKHR> vulkan_surface_formats;
+		std::vector<VkPresentModeKHR> present_modes;
+	};
 
-
+	bool checkVulkanDeviceExtensionSupport(VkPhysicalDevice);
+	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice);
 }; // End class VulkanAPI
