@@ -139,4 +139,10 @@ private:
 
 	void createImageViews();
 	void destroyImageViews();
+
+	/**
+	*	Graphics Pipeline Intro
+	*/
+
+	void createGraphicsPipline();
 }; // End class VulkanAPI

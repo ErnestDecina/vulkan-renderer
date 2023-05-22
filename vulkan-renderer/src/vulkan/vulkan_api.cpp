@@ -955,3 +955,18 @@ void VulkanAPI::destroyImageViews()
         vkDestroyImageView(this->vulkan_logical_device, swap_chain_image_view, nullptr);
     } // End for
 } // End destoryImageViews()
+
+//
+//
+//  Graphics Pipeline
+//
+//
+
+/**
+*   createGraphicsPipline()
+*   desc:
+*/
+void VulkanAPI::createGraphicsPipline()
+{
+
+} // End createGraphicsPipeline
