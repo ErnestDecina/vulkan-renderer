@@ -23,7 +23,7 @@ VulkanAPI::~VulkanAPI()
     if (this->enable_validation_layers)
         destroyDebugUtilsMessengerEXT(this->vulkan_instance, this->debug_messenger, nullptr);
 
-    
+    vkDestroySwapchainKHR(this->vulkan_logical_device, this->vulkan_swap_chain, nullptr);
     vkDestroyDevice(this->vulkan_logical_device, nullptr);
     vkDestroySurfaceKHR(this->vulkan_instance, this->vulkan_window_surface, nullptr); // Destroying 1 out of 2 SurfaceKHR??????
     vkDestroyInstance(this->vulkan_instance, nullptr);
@@ -69,6 +69,7 @@ void VulkanAPI::initVulkan()
     this->createVulkanWindowSurface();
     this->printSelectedVulkanDevice();
     this->createLogicalDevice();
+    this->createSwapChain();
 } // End initVulkan
 
 
@@ -752,6 +753,11 @@ VulkanAPI::SwapChainSupportDetails VulkanAPI::querySwapChainSupport(VkPhysicalDe
 /**
 *   chooseSwapSurfaceFormat()
 *   desc:
+*       returns a VkSurfaceFormatKHR with the appropriate swap format
+*   
+*   @param const std::vector<VkSurfaceFormatKHR>& available_formats
+* 
+*   @return VkSurfaceFormatKHR with information of swap format
 *       
 */
 VkSurfaceFormatKHR VulkanAPI::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& available_formats)
@@ -764,7 +770,135 @@ VkSurfaceFormatKHR VulkanAPI::chooseSwapSurfaceFormat(const std::vector<VkSurfac
         } // End if
     } // End for
 
-    // Default to first one
+    // Default to first one available format
     return available_formats[0];
 } // End chooseSwapSurfaceFormat
+
+/**
+*   chooseSwapPresentMode()
+*   desc:
+*       returns a VkPresentModeKHR with the appropriate present mode
+* 
+*   @param const std::vector<VkPresentModeKHR>& available_present_modes
+* 
+*   @return VkPresentModeKHR with information on the present mode
+* 
+*/
+VkPresentModeKHR VulkanAPI::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& available_present_modes)
+{
+    for (const VkPresentModeKHR& available_present_mode : available_present_modes)
+    {
+        if (available_present_mode == VULKAN_SWAP_CHAIN_PRESENTATION_MODE)
+        {
+            return available_present_mode;
+        } // End if 
+    } // End for
+
+    return VK_PRESENT_MODE_FIFO_KHR;
+} // End chooseSwapPresentMode()
+
+/**
+*   chooseSwapExtent()
+*   desc:
+*         returns a VkExtent2D with the windows extent
+*   
+*   @param const VkSurfaceCapabilitiesKHR& surface_capabilities
+* 
+*   @return VkExtent2D information of window width and window hieght
+* 
+*/
+VkExtent2D VulkanAPI::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& surface_capabilities)
+{
+    if (surface_capabilities.currentExtent.width != (std::numeric_limits<uint32_t>::max)())
+    {
+        return surface_capabilities.currentExtent;
+    } // End if
+    else
+    {
+        int window_width;
+        int window_height;
+
+        glfwGetFramebufferSize(this->glfw_window, &window_width, &window_height);
+
+        VkExtent2D actual_window_extent = {
+            static_cast<uint32_t>(window_width),
+            static_cast<uint32_t>(window_height)
+        };
+
+        actual_window_extent.width = std::clamp(actual_window_extent.width, surface_capabilities.minImageExtent.width, surface_capabilities.maxImageExtent.width);
+        actual_window_extent.height = std::clamp(actual_window_extent.height, surface_capabilities.minImageExtent.height, surface_capabilities.minImageExtent.height);
+        
+        return actual_window_extent;
+    } // End else
+} // End chooseSwapExtent()
+
+/**
+*   createSwapChain()
+*   desc:
+*       Creates a vulkan swap chain
+*   
+*/
+void VulkanAPI::createSwapChain()
+{
+    SwapChainSupportDetails swap_chain_support = querySwapChainSupport(this->vulkan_physical_device);
+
+    VkSurfaceFormatKHR surface_format = chooseSwapSurfaceFormat(swap_chain_support.vulkan_surface_formats);
+    VkPresentModeKHR present_mode = chooseSwapPresentMode(swap_chain_support.present_modes);
+    VkExtent2D extent = chooseSwapExtent(swap_chain_support.vulkan_surface_capabilities);
+
+    uint32_t image_count = swap_chain_support.vulkan_surface_capabilities.minImageCount + 1;
+    if (swap_chain_support.vulkan_surface_capabilities.maxImageCount > 0 && image_count > swap_chain_support.vulkan_surface_capabilities.maxImageCount)
+    {
+        image_count = swap_chain_support.vulkan_surface_capabilities.maxImageCount;
+    } // End if
+
+    // Swap Chain Creation Information
+    VkSwapchainCreateInfoKHR swap_chain_create_info{};
+    swap_chain_create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swap_chain_create_info.surface = this->vulkan_window_surface;
+    
+    swap_chain_create_info.minImageCount = image_count;
+    swap_chain_create_info.imageFormat = surface_format.format;
+    swap_chain_create_info.imageColorSpace = surface_format.colorSpace;
+    swap_chain_create_info.imageExtent = extent;
+    swap_chain_create_info.imageArrayLayers = 1;
+    swap_chain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+    QueueFamilyIndices indices = findQueueFamilies(this->vulkan_physical_device);
+    uint32_t queue_family_indices[] = { indices.graphics_family.value(), indices.present_family.value() };
+
+
+    if (indices.graphics_family != indices.present_family)
+    {
+        swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        swap_chain_create_info.queueFamilyIndexCount = 1;
+        swap_chain_create_info.pQueueFamilyIndices = queue_family_indices;
+    } // End if
+    else
+    {
+        swap_chain_create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+        swap_chain_create_info.queueFamilyIndexCount = 0;
+        swap_chain_create_info.pQueueFamilyIndices = nullptr;
+    } // End else
+
+    swap_chain_create_info.preTransform = swap_chain_support.vulkan_surface_capabilities.currentTransform;
+    swap_chain_create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swap_chain_create_info.presentMode = present_mode;
+    swap_chain_create_info.clipped = VK_TRUE;
+    swap_chain_create_info.oldSwapchain = VK_NULL_HANDLE;
+
+    if (vkCreateSwapchainKHR(this->vulkan_logical_device, &swap_chain_create_info, nullptr, &this->vulkan_swap_chain))
+    {
+        throw std::runtime_error("Failed to create swap chain");
+    } // End if
+
+    // Retrieving the swap chain images
+    vkGetSwapchainImagesKHR(this->vulkan_logical_device, this->vulkan_swap_chain, &image_count, nullptr);
+    this->vulkan_swap_chain_images.resize(image_count);
+    vkGetSwapchainImagesKHR(this->vulkan_logical_device, this->vulkan_swap_chain, &image_count, this->vulkan_swap_chain_images.data());
+
+    // Saving Format and Extent
+    this->vulkan_swap_chain_image_format = surface_format.format;
+    this->vulkan_swap_chain_extent = extent;
+} // End createSwapChain
 

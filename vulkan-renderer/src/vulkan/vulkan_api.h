@@ -12,9 +12,14 @@
 #include <stdexcept>
 #include <cstdlib>
 #include <cstring>
+
 #include <map>
 #include <set>
 #include <optional>
+
+#include <cstdint> // Necessary for uint32_t
+#include <limits> // Necessary for std::numeric_limits
+#include <algorithm> // Necessary for std::clamp
 
 // DEBUG
 #define DEBUG_STATE true
@@ -22,6 +27,7 @@
 // Symbolic Names
 #define VULKAN_APP_NAME "Hello Triangle"
 #define VULKAN_ENGINE_NAME "No Engine"
+#define VULKAN_SWAP_CHAIN_PRESENTATION_MODE VK_PRESENT_MODE_MAILBOX_KHR
 
 class VulkanAPI
 {
@@ -106,6 +112,11 @@ private:
 	/**
 	*	Swap Chain
 	*/
+	VkSwapchainKHR vulkan_swap_chain;
+	std::vector<VkImage> vulkan_swap_chain_images;
+	VkFormat vulkan_swap_chain_image_format;
+	VkExtent2D vulkan_swap_chain_extent;
+
 	const std::vector<const char*> vulkan_device_extensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 	struct SwapChainSupportDetails
 	{
@@ -117,4 +128,7 @@ private:
 	bool checkVulkanDeviceExtensionSupport(VkPhysicalDevice);
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice);
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>&);
+	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>&);
+	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR&);
+	void createSwapChain();
 }; // End class VulkanAPI
