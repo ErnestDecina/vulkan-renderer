@@ -131,4 +131,12 @@ private:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>&);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR&);
 	void createSwapChain();
+
+	/**
+	*	Image Views
+	*/
+	std::vector<VkImageView> vulkan_swap_chain_image_views;
+
+	void createImageViews();
+	void destroyImageViews();
 }; // End class VulkanAPI

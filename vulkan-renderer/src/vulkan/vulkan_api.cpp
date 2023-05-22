@@ -23,6 +23,7 @@ VulkanAPI::~VulkanAPI()
     if (this->enable_validation_layers)
         destroyDebugUtilsMessengerEXT(this->vulkan_instance, this->debug_messenger, nullptr);
 
+    this->destroyImageViews();
     vkDestroySwapchainKHR(this->vulkan_logical_device, this->vulkan_swap_chain, nullptr);
     vkDestroyDevice(this->vulkan_logical_device, nullptr);
     vkDestroySurfaceKHR(this->vulkan_instance, this->vulkan_window_surface, nullptr); // Destroying 1 out of 2 SurfaceKHR??????
@@ -902,3 +903,55 @@ void VulkanAPI::createSwapChain()
     this->vulkan_swap_chain_extent = extent;
 } // End createSwapChain
 
+//
+//
+//  
+// Image Views
+//
+//
+
+/**
+*   createImageViews()
+*   desc:
+*       
+*/
+void VulkanAPI::createImageViews()
+{
+    this->vulkan_swap_chain_image_views.resize(this->vulkan_swap_chain_images.size());
+
+    for (uint32_t image_view_index = 0; image_view_index < vulkan_swap_chain_images.size(); image_view_index++)
+    {
+        VkImageViewCreateInfo vulkan_image_view_create_info{};
+        vulkan_image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        vulkan_image_view_create_info.image = this->vulkan_swap_chain_images[image_view_index];
+        vulkan_image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        vulkan_image_view_create_info.format = this->vulkan_swap_chain_image_format;
+        vulkan_image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        vulkan_image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        vulkan_image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        vulkan_image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        vulkan_image_view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        vulkan_image_view_create_info.subresourceRange.baseMipLevel = 0;
+        vulkan_image_view_create_info.subresourceRange.levelCount = 1;
+        vulkan_image_view_create_info.subresourceRange.baseArrayLayer = 0;
+        vulkan_image_view_create_info.subresourceRange.layerCount = 1;
+
+        if (vkCreateImageView(this->vulkan_logical_device, &vulkan_image_view_create_info, nullptr, &vulkan_swap_chain_image_views[image_view_index]) != VK_SUBOPTIMAL_KHR)
+        {
+            throw std::runtime_error("Failed to create image views");
+        } // End if
+    } // End for
+} // End createImageViews()
+
+/**
+*   destoryImageViews
+*   desc:
+*       
+*/
+void VulkanAPI::destroyImageViews()
+{
+    for (VkImageView swap_chain_image_view : this->vulkan_swap_chain_image_views)
+    {
+        vkDestroyImageView(this->vulkan_logical_device, swap_chain_image_view, nullptr);
+    } // End for
+} // End destoryImageViews()
