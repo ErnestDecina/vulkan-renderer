@@ -1141,7 +1141,6 @@ void VulkanAPI::createGraphicsPipline()
 */
 VkShaderModule VulkanAPI::createShaderModule(const std::vector<char>& code)
 {
-    
     VkShaderModuleCreateInfo shader_module_create_info{};
     shader_module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     shader_module_create_info.codeSize = code.size();
