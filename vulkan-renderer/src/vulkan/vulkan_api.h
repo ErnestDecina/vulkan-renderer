@@ -21,6 +21,10 @@
 #include <limits> // Necessary for std::numeric_limits
 #include <algorithm> // Necessary for std::clamp
 
+#include <fstream>
+
+#include "../utils/file_system/file_system.h"
+
 // DEBUG
 #define DEBUG_STATE true
 
@@ -143,6 +147,14 @@ private:
 	/**
 	*	Graphics Pipeline Intro
 	*/
+	VkPipelineLayout vulkan_pipeline_layout;
 
 	void createGraphicsPipline();
+
+	/**
+	*	Shader Modules
+	*/
+
+	VkShaderModule createShaderModule(const std::vector<char>&);
+	void destroyShaderModule();
 }; // End class VulkanAPI

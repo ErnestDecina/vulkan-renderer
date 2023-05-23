@@ -37,6 +37,24 @@
     <Filter Include="Source Files\Application\Hello Triangle Applcation">
       <UniqueIdentifier>{4d71f822-9329-4282-bd23-76663c94aaee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Shaders">
+      <UniqueIdentifier>{b3d6f301-12bf-4c32-8974-4d94b53f0007}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders\Shader Modules">
+      <UniqueIdentifier>{db5c240a-eec7-4934-ab5b-b8f34de59a27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utils">
+      <UniqueIdentifier>{42d1f9e4-68e7-4e78-ad57-5f6de5da5d2e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Utils\File System">
+      <UniqueIdentifier>{db7d5a60-9af2-48c2-8112-d1ffa6cad3f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders\Shader Modules\Compiled">
+      <UniqueIdentifier>{16daab34-649f-4e7a-83e5-f9cff2b0764a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\Shaders\Shader Modules\Source">
+      <UniqueIdentifier>{430ca2f3-60b2-43a9-8abe-127d9c2839b7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\window\glfw_window.h">
@@ -50,6 +68,9 @@
     </ClInclude>
     <ClInclude Include="src\vulkan\vulkan_api.h">
       <Filter>Header Files\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\file_system\file_system.h">
+      <Filter>Header Files\Utils\File System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -65,5 +86,22 @@
     <ClCompile Include="src\vulkan\vulkan_api.cpp">
       <Filter>Source Files\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\file_system\file_system.cpp">
+      <Filter>Header Files\Utils\File System</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\shaders\shader-modules\shader.frag">
+      <Filter>Resource Files\Shaders\Shader Modules\Source</Filter>
+    </None>
+    <None Include="src\shaders\shader-modules\shader.vert">
+      <Filter>Resource Files\Shaders\Shader Modules\Source</Filter>
+    </None>
+    <None Include="src\shaders\shader-modules\frag.spv">
+      <Filter>Resource Files\Shaders\Shader Modules\Compiled</Filter>
+    </None>
+    <None Include="src\shaders\shader-modules\vert.spv">
+      <Filter>Resource Files\Shaders\Shader Modules\Compiled</Filter>
+    </None>
   </ItemGroup>
 </Project>
