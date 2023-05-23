@@ -26,7 +26,7 @@
 #include "../utils/file_system/file_system.h"
 
 // DEBUG
-#define DEBUG_STATE true
+#define DEBUG_STATE false
 
 // Symbolic Names
 #define VULKAN_APP_NAME "Hello Triangle"
@@ -157,4 +157,11 @@ private:
 
 	VkShaderModule createShaderModule(const std::vector<char>&);
 	void destroyShaderModule();
+
+	/**
+	*	Render Passes
+	*/
+	VkRenderPass vulkan_render_pass;
+
+	void createRenderPass();
 }; // End class VulkanAPI
