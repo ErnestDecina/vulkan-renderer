@@ -23,6 +23,7 @@ VulkanAPI::~VulkanAPI()
     if (this->enable_validation_layers)
         destroyDebugUtilsMessengerEXT(this->vulkan_instance, this->debug_messenger, nullptr);
 
+    vkDestroyPipeline(this->vulkan_logical_device, this->vulkan_graphics_pipeline, nullptr);
     vkDestroyPipelineLayout(this->vulkan_logical_device, this->vulkan_pipeline_layout, nullptr);
     vkDestroyRenderPass(this->vulkan_logical_device, this->vulkan_render_pass, nullptr);
     this->destroyImageViews();
@@ -73,8 +74,8 @@ void VulkanAPI::initVulkan()
     this->printSelectedVulkanDevice();
     this->createLogicalDevice();
     this->createSwapChain();
-    this->createGraphicsPipline();
     this->createRenderPass();
+    this->createGraphicsPipline();
 } // End initVulkan
 
 
@@ -986,7 +987,7 @@ void VulkanAPI::createGraphicsPipline()
     vulkan_vert_shader_stage_info.pName = "main";
 
     VkPipelineShaderStageCreateInfo vulkan_frag_shader_stage_info{};
-    vulkan_frag_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    vulkan_frag_shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     vulkan_frag_shader_stage_info.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     vulkan_frag_shader_stage_info.module = frag_shader_module;
     vulkan_frag_shader_stage_info.pName = "main";
@@ -1097,6 +1098,30 @@ void VulkanAPI::createGraphicsPipline()
     {
         throw std::runtime_error("Failed to create pipeline layout");
     } // End if  
+
+    // Create Pipeline
+    VkGraphicsPipelineCreateInfo pipeline_info{};
+    pipeline_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipeline_info.stageCount = 2;
+    pipeline_info.pStages = shader_stages;
+    pipeline_info.pVertexInputState = &vertex_input_info;
+    pipeline_info.pInputAssemblyState = &input_assembly;
+    pipeline_info.pViewportState = &viewport_state;
+    pipeline_info.pRasterizationState = &rasterizer;
+    pipeline_info.pMultisampleState = &multisampling;
+    pipeline_info.pDepthStencilState = nullptr; // Optional
+    pipeline_info.pColorBlendState = &color_blending;
+    pipeline_info.pDynamicState = &dynamic_state;
+    pipeline_info.layout = this->vulkan_pipeline_layout;
+    pipeline_info.renderPass = this->vulkan_render_pass;
+    pipeline_info.subpass = 0;
+    pipeline_info.basePipelineHandle = VK_NULL_HANDLE; // Optional
+    pipeline_info.basePipelineIndex = -1; // Optional
+
+    if (vkCreateGraphicsPipelines(this->vulkan_logical_device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &this->vulkan_graphics_pipeline) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create graphics pipeline");
+    } // End if
 
     // Clean
     vkDestroyShaderModule(this->vulkan_logical_device, frag_shader_module, nullptr);

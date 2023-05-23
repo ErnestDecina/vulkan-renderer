@@ -26,7 +26,7 @@
 #include "../utils/file_system/file_system.h"
 
 // DEBUG
-#define DEBUG_STATE false
+#define DEBUG_STATE true
 
 // Symbolic Names
 #define VULKAN_APP_NAME "Hello Triangle"
@@ -147,6 +147,7 @@ private:
 	/**
 	*	Graphics Pipeline Intro
 	*/
+	VkPipeline vulkan_graphics_pipeline;
 	VkPipelineLayout vulkan_pipeline_layout;
 
 	void createGraphicsPipline();
