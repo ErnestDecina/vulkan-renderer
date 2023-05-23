@@ -165,4 +165,12 @@ private:
 	VkRenderPass vulkan_render_pass;
 
 	void createRenderPass();
+
+	/**
+	*	Framebuffers
+	*/
+	std::vector<VkFramebuffer> vulkan_swap_chain_frame_buffers;
+
+	void createFramebuffers();
+	void destroyFramebuffers();
 }; // End class VulkanAPI

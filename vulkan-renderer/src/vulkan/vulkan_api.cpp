@@ -23,6 +23,7 @@ VulkanAPI::~VulkanAPI()
     if (this->enable_validation_layers)
         destroyDebugUtilsMessengerEXT(this->vulkan_instance, this->debug_messenger, nullptr);
 
+    this->destroyFramebuffers();
     vkDestroyPipeline(this->vulkan_logical_device, this->vulkan_graphics_pipeline, nullptr);
     vkDestroyPipelineLayout(this->vulkan_logical_device, this->vulkan_pipeline_layout, nullptr);
     vkDestroyRenderPass(this->vulkan_logical_device, this->vulkan_render_pass, nullptr);
@@ -76,6 +77,7 @@ void VulkanAPI::initVulkan()
     this->createSwapChain();
     this->createRenderPass();
     this->createGraphicsPipline();
+    this->createFramebuffers();
 } // End initVulkan
 
 
@@ -1209,7 +1211,58 @@ void VulkanAPI::createRenderPass()
 
     if (vkCreateRenderPass(this->vulkan_logical_device, &render_pass_info, nullptr, &this->vulkan_render_pass) != VK_SUCCESS)
     {
-        std::runtime_error("Failed to create render pass");
+        throw std::runtime_error("Failed to create render pass");
     } // End if
 
 } // End createRenderPass()
+
+//
+//
+//  Framebuffers
+//
+//
+
+/**
+*   createFramebuffers()
+*   desc:
+*       
+*/
+void VulkanAPI::createFramebuffers()
+{
+    this->vulkan_swap_chain_frame_buffers.resize(this->vulkan_swap_chain_image_views.size());
+
+    for (size_t i = 0; this->vulkan_swap_chain_image_views.size(); i++)
+    {
+        VkImageView attachments[] = { this->vulkan_swap_chain_image_views[i] };
+
+        VkFramebufferCreateInfo framebuffer_info{};
+        framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebuffer_info.renderPass = this->vulkan_render_pass;
+        framebuffer_info.attachmentCount = 1;
+        framebuffer_info.pAttachments = attachments;
+        framebuffer_info.width = this->vulkan_swap_chain_extent.width;
+        framebuffer_info.height = this->vulkan_swap_chain_extent.height;
+        framebuffer_info.layers = 1;
+
+        if (vkCreateFramebuffer(this->vulkan_logical_device, &framebuffer_info, nullptr, &this->vulkan_swap_chain_frame_buffers[i]) != VK_SUCCESS) 
+        {
+            throw std::runtime_error("Failed to create framebuffer");
+        }
+
+    } // End for
+
+
+} // End createFramebuffers()
+
+/**
+*   destroyFramebuffers()
+*   desc:
+*   
+*/
+void VulkanAPI::destroyFramebuffers()
+{
+    for (VkFramebuffer framebuffer : this->vulkan_swap_chain_frame_buffers)
+    {
+        vkDestroyFramebuffer(this->vulkan_logical_device, framebuffer, nullptr);
+    } // End for
+} // End destroyFramebuffers()
