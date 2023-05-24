@@ -23,6 +23,7 @@ VulkanAPI::~VulkanAPI()
     if (this->enable_validation_layers)
         destroyDebugUtilsMessengerEXT(this->vulkan_instance, this->debug_messenger, nullptr);
 
+    vkDestroyCommandPool(this->vulkan_logical_device, this->vulkan_command_pool, nullptr);
     this->destroyFramebuffers();
     vkDestroyPipeline(this->vulkan_logical_device, this->vulkan_graphics_pipeline, nullptr);
     vkDestroyPipelineLayout(this->vulkan_logical_device, this->vulkan_pipeline_layout, nullptr);
@@ -30,9 +31,19 @@ VulkanAPI::~VulkanAPI()
     this->destroyImageViews();
     vkDestroySwapchainKHR(this->vulkan_logical_device, this->vulkan_swap_chain, nullptr);
     vkDestroyDevice(this->vulkan_logical_device, nullptr);
-    vkDestroySurfaceKHR(this->vulkan_instance, this->vulkan_window_surface, nullptr); // Destroying 1 out of 2 SurfaceKHR??????
+    vkDestroySurfaceKHR(this->vulkan_instance, this->vulkan_window_surface, nullptr);
     vkDestroyInstance(this->vulkan_instance, nullptr);
 } // End VulkanAPI deconstructor
+
+/**
+*   drawFrame()
+*   desc:
+*   
+*/
+void VulkanAPI::drawFrame()
+{
+
+} // End drawFrame()
 
 /**
 *   getVulkanInstance()
@@ -78,6 +89,8 @@ void VulkanAPI::initVulkan()
     this->createRenderPass();
     this->createGraphicsPipline();
     this->createFramebuffers();
+    this->createCommandPool();
+    this->createCommandBuffer();
 } // End initVulkan
 
 
@@ -1250,8 +1263,6 @@ void VulkanAPI::createFramebuffers()
         }
 
     } // End for
-
-
 } // End createFramebuffers()
 
 /**
@@ -1266,3 +1277,111 @@ void VulkanAPI::destroyFramebuffers()
         vkDestroyFramebuffer(this->vulkan_logical_device, framebuffer, nullptr);
     } // End for
 } // End destroyFramebuffers()
+
+//
+//
+//  Command Buffers
+//
+//
+
+/**
+*   createCommandPool()
+*   desc:
+*       
+*/
+void VulkanAPI::createCommandPool()
+{
+    QueueFamilyIndices queue_family_indices = this->findQueueFamilies(this->vulkan_physical_device);
+
+    VkCommandPoolCreateInfo pool_info{};
+    pool_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    pool_info.queueFamilyIndex = queue_family_indices.graphics_family.value();
+
+    if (vkCreateCommandPool(this->vulkan_logical_device, &pool_info, nullptr, &this->vulkan_command_pool) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to create command pool");
+    } // End if
+} // End createCommandPool()
+
+/**
+*   createCommandBuffer()
+*   desc:
+*   
+*/
+void VulkanAPI::createCommandBuffer()
+{
+    VkCommandBufferAllocateInfo command_buffer_allocate_info{};
+    command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    command_buffer_allocate_info.commandPool = this->vulkan_command_pool;
+    command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    command_buffer_allocate_info.commandBufferCount = 1;
+
+    if (vkAllocateCommandBuffers(this->vulkan_logical_device, &command_buffer_allocate_info, &this->vulkan_command_buffer) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to allocate command buffers");
+    } // End if 
+} // End createCommandBuffer()
+
+/**
+*   recordCommandBuffer()
+*   desc:
+*       
+*/
+void VulkanAPI::recordCommandBuffer(VkCommandBuffer command_buffer, uint32_t image_index)
+{
+    // Command Buffer Recording
+    VkCommandBufferBeginInfo command_buffer_begin_info{};
+    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    command_buffer_begin_info.flags = 0; // Optional
+    command_buffer_begin_info.pInheritanceInfo = nullptr; // Optional
+
+    if (vkBeginCommandBuffer(this->vulkan_command_buffer, &command_buffer_begin_info) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to begin recording command buffer");
+    } // End if 
+
+    // Starting a render pass
+    VkRenderPassBeginInfo render_pass_info{};
+    render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    render_pass_info.renderPass = this->vulkan_render_pass;
+    render_pass_info.framebuffer = this->vulkan_swap_chain_frame_buffers[image_index];
+
+    render_pass_info.renderArea.offset = { 0, 0 };
+    render_pass_info.renderArea.extent = this->vulkan_swap_chain_extent;
+
+    VkClearValue clear_color = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
+    render_pass_info.clearValueCount = 1;
+    render_pass_info.pClearValues = &clear_color;
+
+    vkCmdBeginRenderPass(this->vulkan_command_buffer, &render_pass_info, VK_SUBPASS_CONTENTS_INLINE);
+
+    // Basic drawing commands
+    vkCmdBindPipeline(this->vulkan_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->vulkan_graphics_pipeline);
+
+    // Viewports & Scissors
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = (float)this->vulkan_swap_chain_extent.width;
+    viewport.height = (float)this->vulkan_swap_chain_extent.height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(this->vulkan_command_buffer, 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.offset = { 0, 0 };
+    scissor.extent = this->vulkan_swap_chain_extent;
+    vkCmdSetScissor(this->vulkan_command_buffer, 0, 1, &scissor);
+
+    // Draw Triangle
+    vkCmdDraw(this->vulkan_command_buffer, 3, 1, 0, 0);
+
+    // Finish
+    vkCmdEndRenderPass(this->vulkan_command_buffer);
+
+    if (vkEndCommandBuffer(this->vulkan_command_buffer) != VK_SUCCESS)
+    {
+        throw std::runtime_error("Failed to record command buffer");
+    } // End if
+} // End recordCommandBuffer()

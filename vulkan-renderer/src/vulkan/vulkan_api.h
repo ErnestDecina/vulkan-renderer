@@ -39,6 +39,7 @@ public:
 	VulkanAPI(GLFWwindow*);
 	~VulkanAPI();
 
+	void drawFrame();
 	VkInstance getVulkanInstance();
 	VkSurfaceKHR* getVulkanWindowSurface();
 
@@ -173,4 +174,14 @@ private:
 
 	void createFramebuffers();
 	void destroyFramebuffers();
+
+	/**
+	*	Command Buffers
+	*/
+	VkCommandPool vulkan_command_pool;
+	VkCommandBuffer vulkan_command_buffer;
+
+	void createCommandPool();
+	void createCommandBuffer();
+	void recordCommandBuffer(VkCommandBuffer, uint32_t);
 }; // End class VulkanAPI

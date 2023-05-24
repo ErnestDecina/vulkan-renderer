@@ -21,6 +21,7 @@ void HelloTriangleApplication::mainLoop()
 	while (!glfwWindowShouldClose(this->glfw_window.getWindow()))
 	{
 		glfwPollEvents();
+		this->vulkan_api.drawFrame();
 	} // End while
 } // End mainLoop()
 
